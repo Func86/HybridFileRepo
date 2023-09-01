@@ -1,0 +1,3 @@
+{
+	"hybridfilerepo-desc": "Simple FileRepo implementation that serves files locally, but fetch file description from a foreign site."
+}
