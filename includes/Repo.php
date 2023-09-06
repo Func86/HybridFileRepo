@@ -27,6 +27,7 @@ use MediaWiki\MediaWikiServices;
 class Repo extends FileRepo {
 
 	protected string $foreignRepoName;
+	protected bool $replaceUnderscore;
 	protected FileRepo $foreignRepo;
 
 	/** @inheritDoc */
@@ -36,6 +37,7 @@ class Repo extends FileRepo {
 	public function __construct( array $info = null ) {
 		parent::__construct( $info );
 		$this->foreignRepoName = $info['foreignRepo'];
+		$this->replaceUnderscore = $info['replaceUnderscore'] ?? false;
 	}
 
 	public function getForeignRepo() {
@@ -48,5 +50,14 @@ class Repo extends FileRepo {
 			$this->foreignRepo = $foreignRepo;
 		}
 		return $this->foreignRepo;
+	}
+
+	/** @inheritDoc */
+	protected function resolveToStoragePathIfVirtual( $path ) {
+		$path = parent::resolveToStoragePathIfVirtual( $path );
+		if ( $this->replaceUnderscore && !str_starts_with( $path, '/tmp' ) ) {
+			$path = str_replace( '_', ' ', $path );
+		}
+		return $path;
 	}
 }
