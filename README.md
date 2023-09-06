@@ -10,10 +10,10 @@ wfLoadExtension( 'HybridFileRepo' );
 $wgForeignFileRepos[] = [
 	'class' => MediaWiki\Extension\HybridFileRepo\Repo::class,
 	'name' => 'sharedFsRepo',
-	'directory' => 'media', // The local directory that contains files
+	'directory' => '/path/to/media', // Fully qualified path to the local directory that contains files
 	'hashLevels' => 0,
 	'url' => 'http://localhost:8080/w/media', // Change this to your real path
-	'foreignRepo' => 'zhmoe', // This should be identical to the name of foreign file repo below
+	'foreignRepo' => 'zhmoe', // This should be identical to the name of the foreign file repo below
 	'descBaseUrl' => 'https://commons.moegirl.org.cn/File:',
 	'fetchDescription' => true,
 ];
