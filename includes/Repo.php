@@ -21,13 +21,16 @@
 
 namespace MediaWiki\Extension\HybridFileRepo;
 
+use FileBackend;
 use FileRepo;
+use JobSpecification;
 use MediaWiki\MediaWikiServices;
 
 class Repo extends FileRepo {
 
 	protected string $foreignRepoName;
 	protected bool $replaceUnderscore;
+	protected bool $downloadForeignFile;
 	protected FileRepo $foreignRepo;
 
 	/** @inheritDoc */
@@ -38,6 +41,7 @@ class Repo extends FileRepo {
 		parent::__construct( $info );
 		$this->foreignRepoName = $info['foreignRepo'];
 		$this->replaceUnderscore = $info['replaceUnderscore'] ?? false;
+		$this->downloadForeignFile = $info['downloadForeignFile'] ?? false;
 	}
 
 	public function getForeignRepo() {
@@ -59,5 +63,37 @@ class Repo extends FileRepo {
 			$path = str_replace( '_', ' ', $path );
 		}
 		return $path;
+	}
+
+	public function fileExistsBatch( array $files ) {
+		$result = parent::fileExistsBatch( $files );
+		if ( !$this->downloadForeignFile ) {
+			return $result;
+		}
+
+		foreach ( $files as $key => $file ) {
+			if ( $result[$key] ) {
+				continue;
+			}
+
+			[ , , $fileName ] = FileBackend::splitStoragePath( $file );
+			$foreignFile = $this->getForeignRepo()->findFile( $fileName );
+			if ( !$foreignFile ) {
+				continue;
+			}
+
+			$destPath = $this->resolveToStoragePathIfVirtual( $file );
+			$downloadJob = new JobSpecification(
+				'downloadForeignFile', [
+					'fileUrl' => $foreignFile->getUrl(),
+					'destPath' => $destPath,
+				],
+				[ 'removeDuplicates' => true ]
+			);
+			MediaWikiServices::getInstance()->getJobQueueGroup()->push( $downloadJob );
+			wfDebugLog( 'HybridFileRepo', "Download job queued for $destPath" );
+		}
+
+		return $result;
 	}
 }

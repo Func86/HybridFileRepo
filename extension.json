@@ -19,5 +19,14 @@
 	"AutoloadNamespaces": {
 		"MediaWiki\\Extension\\HybridFileRepo\\": "includes/"
 	},
+	"JobClasses": {
+		"downloadForeignFile": {
+			"class": "MediaWiki\\Extension\\HybridFileRepo\\DownloadForeignFileJob",
+			"services": [
+				"HttpRequestFactory",
+				"FileBackendGroup"
+			]
+		}
+	},
 	"manifest_version": 2
 }
