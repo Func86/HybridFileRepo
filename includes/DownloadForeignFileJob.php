@@ -55,7 +55,9 @@ class DownloadForeignFileJob extends Job {
 			return false;
 		}
 
-		$response = $this->httpRequestFactory->get( $fileUrl );
+		$response = $this->httpRequestFactory->get( $fileUrl, [
+			'userAgent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36'
+		] );
 		if ( !$response ) {
 			wfDebugLog( 'HybridFileRepo', "Download job get URL failed: $fileUrl" );
 			return false;
