@@ -71,6 +71,7 @@ class Repo extends FileRepo {
 			return $result;
 		}
 
+		$downloadJobs = [];
 		foreach ( $files as $key => $file ) {
 			if ( $result[$key] ) {
 				continue;
@@ -83,15 +84,17 @@ class Repo extends FileRepo {
 			}
 
 			$destPath = $this->resolveToStoragePathIfVirtual( $file );
-			$downloadJob = new JobSpecification(
+			$downloadJobs[] = new JobSpecification(
 				'downloadForeignFile', [
 					'fileUrl' => $foreignFile->getUrl(),
 					'destPath' => $destPath,
 				],
 				[ 'removeDuplicates' => true ]
 			);
-			MediaWikiServices::getInstance()->getJobQueueGroup()->push( $downloadJob );
 			wfDebugLog( 'HybridFileRepo', "Download job queued for $destPath" );
+		}
+		if ( $downloadJobs ) {
+			MediaWikiServices::getInstance()->getJobQueueGroup()->lazyPush( $downloadJobs );
 		}
 
 		return $result;
